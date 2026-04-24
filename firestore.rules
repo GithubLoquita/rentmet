@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Routes ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+
+      match /wishlist/{propertyId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /properties/{propertyId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (resource.data.ownerId == request.auth.uid);
+      allow delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid);
+
+      match /bookings/{bookingId} {
+        allow read, write: if isSignedIn() && (resource.data.studentId == request.auth.uid || resource.data.ownerId == request.auth.uid);
+      }
+    }
+
+    match /bookings/{bookingId} {
+      allow read, write: if isSignedIn() && (resource.data.studentId == request.auth.uid || resource.data.ownerId == request.auth.uid);
+    }
+
+    match /chats/{chatId} {
+      allow read, write: if isSignedIn() && resource.data.participants.hasAny([request.auth.uid]);
+      
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    match /admins/{userId} {
+      allow read: if isSignedIn();
+    }
+  }
+}

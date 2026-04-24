@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a student or property owner with verification status.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "owner", "admin"] },
+        "college": { "type": "string" },
+        "isVerified": { "type": "boolean" },
+        "verificationDoc": { "type": "string" },
+        "ownershipProof": { "type": "string", "description": "URL to property ownership or rental proof" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Property": {
+      "title": "Property",
+      "description": "A detailed student accommodation listing.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["PG", "Hostel", "Mess", "Flatshare", "Rental"] },
+        "price": { "type": "number" },
+        "deposit": { "type": "number" },
+        "city": { "type": "string" },
+        "locality": { "type": "string" },
+        "college": { "type": "string" },
+        "distance": { "type": "number" },
+        "gender": { "type": "string", "enum": ["Boys", "Girls", "Co-living"] },
+        "amenities": { "type": "array", "items": { "type": "string" } },
+        "roomTypes": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "count": { "type": "number" },
+              "price": { "type": "number" }
+            }
+          } 
+        },
+        "rules": { "type": "array", "items": { "type": "string" } },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "video": { "type": "string" },
+        "rating": { "type": "number" },
+        "isVerified": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["ownerId", "title", "type", "price", "city"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A room booking or visit request.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "propertyId": { "type": "string" },
+        "roomType": { "type": "string" },
+        "moveInDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "visited", "checked-in", "completed", "cancelled"] },
+        "paymentStatus": { "type": "string", "enum": ["none", "partial", "paid", "refunded"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "ownerId", "propertyId", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/properties/{propertyId}": {
+      "schema": "Property",
+      "description": "Property listings"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Global bookings lookup"
+    },
+    "/properties/{propertyId}/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Bookings for a specific property"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "object",
+      "description": "Real-time communication"
+    }
+  }
+}
